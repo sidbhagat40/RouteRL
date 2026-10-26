@@ -1,6 +1,11 @@
 obs_dim=39 actions=6 device=cpu credit_assignment=global
-ep    9 step   22813 eps 0.816 train_cost    106629 val_cost    265554 breach 0.848 misroute 1.527 (48.6s)  * best
-ep   19 step   47865 eps 0.613 train_cost    311711 val_cost    384757 breach 0.840 misroute 1.321 (109.3s)
-ep   29 step   71358 eps 0.423 train_cost     99135 val_cost    373730 breach 0.822 misroute 0.668 (242.1s)
-ep   39 step  125897 eps 0.030 train_cost     69425 val_cost    358046 breach 0.746 misroute 1.482 (528.1s)
-done in 1125s; best val cost 265554; best model -> models/ablations/global_reward.pt, final model -> models\ablations\global_reward_final.pt
+ep    9 step   22929 eps 0.815 train_cost    106635 val_cost    289521 score    378678 breach 0.890 misroute 2.436 (79.0s)  * best
+ep   19 step   48044 eps 0.612 train_cost    320828 val_cost    394996 score    470896 breach 0.969 misroute 2.020 (170.2s)
+ep   29 step   69138 eps 0.441 train_cost     82869 val_cost    328411 score    363953 breach 0.910 misroute 2.148 (230.6s)  * best
+ep   39 step   97316 eps 0.213 train_cost     86751 val_cost    225407 score    296677 breach 0.774 misroute 1.322 (345.2s)  * best
+ep   49 step  131894 eps 0.030 train_cost    127376 val_cost    131541 score    210448 breach 0.566 misroute 1.182 (436.7s)  * best
+ep   59 step  168532 eps 0.030 train_cost    114348 val_cost    215021 score    287477 breach 0.709 misroute 2.189 (578.8s)
+ep   69 step  204717 eps 0.030 train_cost     68706 val_cost    166155 score    252730 breach 0.658 misroute 1.216 (673.8s)
+ep   79 step  242469 eps 0.030 train_cost    106807 val_cost    212746 score    303031 breach 0.699 misroute 2.150 (821.0s)
+ep   89 step  282963 eps 0.030 train_cost    234544 val_cost    253680 score    388216 breach 0.654 misroute 2.228 (940.2s)
+done in 1023s; best val score 210448; best model -> models/ablations/global_reward.pt, final model -> models/ablations/global_reward_final.pt

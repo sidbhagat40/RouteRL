@@ -12,7 +12,7 @@
 \graphicspath{{../results/figures/}{figures/}}
 
 \title{\vspace{-1.6em}\textbf{RouteRL: Routing Customer-Support Tickets with Deep Q-Learning}\vspace{-0.6em}}
-\author{\small  \quad Siddharth Bhagat (B23MT1040) \quad Kunal Jangid (B23MT1026)\\
+\author{\small Siddharth Bhagat (B23MT1040) \quad Kunal Jangid (B23MT1026)\\
 \small GitHub: \url{https://github.com/sidbhagat40/RouteRL}\vspace{-1.0em}}
 \date{}
 
@@ -52,7 +52,7 @@ the ticket for one minute.
 
 \textbf{Reward} $r=-\lambda\,\Delta C$, $\lambda{=}0.05$, where the operating cost is
 \begin{equation}
-C=\sum_i \Big(w_{p_i}T_i + B_{p_i}\,\mathbb{1}[T_i>\text{SLA}_{p_i}] + M\,m_i\Big),
+C=\sum_i \Big(w_{p_i}T_i + B_{p_i}\,\mathbf{1}[T_i>\text{SLA}_{p_i}] + M\,m_i\Big),
 \end{equation}
 $T_i$ = time to resolution, $m_i$ = number of misroutes, $w{=}(3,2,1)$/min,
 $B{=}(50,25,10)$, $M{=}5$. Waiting is charged every minute, breaches when the deadline passes,
@@ -62,12 +62,15 @@ misroutes at routing time.
 \textbf{DQN.} Double DQN~\cite{vanhasselt2016} with a dueling head~\cite{wang2016}
 (MLP 39--256--256), Huber loss, Adam ($3\!\times\!10^{-4}$), batch 256, replay $2\!\times\!10^5$,
 soft target updates ($\tau{=}0.005$), $\epsilon$-greedy $1\!\to\!0.03$ over 120k of 300k steps,
-model selection on 5 validation shifts, demand randomised $\times[0.7,1.5]$ during training.
-Two problem-specific choices were \emph{necessary}:
+demand randomised $\times[0.7,1.5]$ during training. Checkpoints are selected on the geometric
+mean of validation cost (5 shifts) at demand $1.0/1.3/1.45\times$, so a policy that only works at
+nominal load is never picked. Three problem-specific choices were \emph{necessary}:
 
 \textbf{(i) Semi-MDP discounting}~\cite{bradtke1995}: targets use $\gamma^{\Delta t}$
-($\gamma{=}0.99$ per elapsed minute). Discounting per \emph{decision} would let the agent make
-future cost look cheaper simply by generating extra hold decisions.
+($\gamma{=}0.99$ per elapsed minute), and every cost term \emph{inside} a transition is
+discounted to its decision time (waiting $w\sum_{k<\Delta t}\gamma^k$). Discounting per decision,
+or charging a long wait undiscounted, makes the same wait look cheaper when split by holds -- in
+an earlier version this drove the agent into hold loops (25--35 holds/ticket at $1.45\times$).
 
 \textbf{(ii) Per-ticket credit assignment.} Trained on the system-wide cost stream, the DQN
 cannot tell which decision caused which cost and degenerates into holding loops (episodes grow
@@ -80,6 +83,9 @@ Because purely ``selfish'' per-ticket costs ignore congestion externalities~\cit
 we add a marginal-cost (Pigouvian) term during training only: a ticket occupying one of $n_k$
 agents for $S$ minutes is charged $\frac{S}{n_k}\sum_{j\in\text{queue}_k}w_{p_j}$.
 
+\textbf{(iii) Hold cap with action masking.} A ticket may be held at most 5 times; the illegal
+hold is masked both when acting and in the target's $\arg\max$ (masks are stored in replay).
+
 \textbf{Baselines.} Random; Round-Robin and Shortest-Queue (category-blind, as proposed);
 Category-Rule (send to the classifier's top-1 specialist); Skill-Aware-SQ (least-loaded team per
 available agent among teams able to handle the predicted category) -- a strong hand-designed
@@ -87,7 +93,7 @@ heuristic. All policies are evaluated on 30 held-out shifts with \emph{identical
 
 \section{Results}
 \begin{table}[t]
-\centering\footnotesize\setlength{\tabcolsep}{3pt}
+\centering\footnotesize\setlength{\tabcolsep}{2.4pt}
 \caption{Test results (30 shifts, $\approx$594 tickets each, mean $\pm$ 95\% CI).}
 \label{tab:main}
 \begin{tabular}{lrrrrr}
@@ -99,14 +105,14 @@ Round-Robin    & 115{,}133$\pm$5463 & 70.3 & 47.7\% & 20.1\% & 1.49\\
 Shortest-Queue & 144{,}620$\pm$8724 & 129.0 & 61.6\% & 30.6\% & 3.05\\
 Category-Rule  & 25{,}961$\pm$2472 & 34.0 & 7.4\% & 1.3\% & 0.22\\
 Skill-Aware-SQ & 15{,}525$\pm$1068 & 17.0 & 1.3\% & 4.1\% & \textbf{0.18}\\
-\textbf{DQN (ours)} & \textbf{14{,}334}$\pm$882 & \textbf{15.5} & \textbf{0.3\%} & 1.4\% & 0.27\\
+\textbf{DQN (ours)} & \textbf{14{,}089}$\pm$812 & \textbf{15.2} & \textbf{0.3\%} & 1.5\% & 0.24\\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\linewidth]{ablation_curves.pdf}
+\includegraphics[width=\linewidth]{ablation_curves}
 \caption{Validation cost during training: three seeds and ablations. The global-reward
 DQN never learns; the dashed line is Skill-Aware-SQ.}
 \label{fig:curves}
@@ -114,47 +120,48 @@ DQN never learns; the dashed line is Skill-Aware-SQ.}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\linewidth]{load_sweep.pdf}
-\caption{Cost and SLA-breach rate vs.\ demand (10 shifts per point).}
+\includegraphics[width=\linewidth]{load_sweep}
+\caption{Cost and SLA-breach rate vs.\ demand (10 shifts per point). The DQN is the cheapest
+policy at every demand level.}
 \label{fig:sweep}
 \end{figure}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\linewidth]{routing_heatmap.pdf}
+\includegraphics[width=\linewidth]{routing_heatmap}
 \caption{Share of each priority's tickets resolved by each team.}
 \label{fig:heat}
 \end{figure}
 
 \textbf{Headline} (Table~\ref{tab:main}). The DQN cuts operating cost by 88\% vs.\ Round-Robin,
-90\% vs.\ Shortest-Queue, 45\% vs.\ Category-Rule and 7.7\% vs.\ Skill-Aware-SQ, which it beats
-on 28/30 paired shifts (paired saving $1191\pm321$, $t{=}7.3$). SLA breaches fall
-4$\times$ (1.3\%$\to$0.3\%), P1 breaches 3$\times$ (4.1\%$\to$1.4\%), mean resolution time from
-17.0 to 15.5\,min. Across three training seeds the cost is $14{,}522\pm272$ (std).
+90\% vs.\ Shortest-Queue, 46\% vs.\ Category-Rule and 9.3\% vs.\ Skill-Aware-SQ, which it beats
+on 29/30 paired shifts (paired saving $1436\pm349$, $t{=}8.1$). SLA breaches fall
+4$\times$ (1.3\%$\to$0.3\%), P1 breaches 2.7$\times$ (4.1\%$\to$1.5\%), mean resolution time from
+17.0 to 15.2\,min. Across three training seeds the cost is $14{,}131\pm76$ (std).
 
 \textbf{What was learned} (Fig.~\ref{fig:heat}). The agent discovered priority-aware use of the
-slow generalist: it sends only 4\% of P1 tickets there (heuristic: 18\%) but 27\% of P3 tickets
+slow generalist: it sends only 6\% of P1 tickets there (heuristic: 18\%) but 23\% of P3 tickets
 (20\%), reserving fast specialists for urgent work -- a $c\mu$-like rule that was never
-hand-coded. Its misroute rate is higher (0.27 vs 0.18 per ticket), but the extra penalties are
+hand-coded. Its misroute rate is higher (0.24 vs 0.18 per ticket), but the extra penalties are
 outweighed by shorter waits and fewer breaches.
 
-\textbf{Ablations} (Fig.~\ref{fig:curves}, nominal demand). \emph{Global reward} (same DQN on the
-system-wide cost stream): cost 249{,}071, 84\% breaches -- credit assignment is essential.
-\emph{No confidence} (top-1 label only): $+4.1\%$ cost, 0.32 misroutes/ticket.
-\emph{No hold} and \emph{no externality}: within 0.1\% of the full agent, i.e.\ the hold action
-is not needed at nominal load; at $1.45\times$ demand the externality term lowers misroutes
-(0.37 vs 0.49) but its cost effect is within seed variance.
+\textbf{Ablations} (Fig.~\ref{fig:curves}; nominal / $1.45\times$ demand, 30 test shifts).
+\emph{Global reward} (same DQN on the system-wide cost stream): cost 126{,}158, 56\% breaches --
+credit assignment is essential. \emph{No confidence} (top-1 label only): $+3.4\%$ cost.
+\emph{No externality}: $+3.1\%$ at nominal and $+9.3\%$ at $1.45\times$ (25\% vs 19\% breaches),
+so the Pigouvian term matters under congestion. \emph{No hold}: $-2.5\%$ / $-4.0\%$, i.e.\ with
+the fixes above the hold action is not needed; we keep it in the main agent for comparability.
 
-\textbf{Robustness} (Fig.~\ref{fig:sweep}). The DQN is best for demand $0.7$--$1.15\times$,
-on par at $1.3\times$ (+4\%) and worse at $1.45\times$ (+18\%), where all policies breach heavily
-and the learned policy holds and misroutes more.
+\textbf{Robustness} (Fig.~\ref{fig:sweep}). The DQN is the cheapest policy at every demand
+level from $0.7\times$ ($-8.5\%$ vs.\ Skill-Aware-SQ) to $1.45\times$ ($-3.7\%$). On the 30 test
+shifts at $1.45\times$ all three seeds beat Skill-Aware-SQ (60.8k--62.6k vs.\ 64.2k) with at most
+1.8 holds/ticket; before fixes (i) and (iii) and multi-load selection the agent was 18\% worse there.
 
 \section{Discussion \& Limitations}
 RL pays off where heuristics are blind: classifier confidence, urgency and heterogeneous service
-rates. Its main weakness is extreme overload, where per-ticket credit assignment remains partly
-selfish; better externality estimates, a hold-time cap or centralised critics are natural next
-steps. The simulator's parameters are synthetic; with real logs they would be fit from ticket
-histories.
+rates. Its margin shrinks under extreme overload, where per-ticket credit assignment remains
+partly selfish; better externality estimates or centralised critics are natural next steps. The
+simulator's parameters are synthetic; with real logs they would be fit from ticket histories.
 
 \footnotesize
 \begin{thebibliography}{9}\setlength{\itemsep}{0pt}

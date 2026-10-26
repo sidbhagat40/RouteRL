@@ -58,6 +58,7 @@ class EnvConfig:
 
     # --- ablation switches ----------------------------------------------
     enable_hold: bool = True         # expose the "hold" action
+    max_holds: int = 5               # a ticket may be held at most this many minutes
     observe_confidence: bool = True  # False: agent only sees the classifier's top-1 label
 
     # --- cost / reward ---------------------------------------------------
@@ -65,7 +66,7 @@ class EnvConfig:
     breach_penalty: list[float] = field(default_factory=lambda: [50.0, 25.0, 10.0])
     misroute_penalty: float = 5.0
     hold_penalty: float = 0.0
-    reward_scale: float = 0.01
+    reward_scale: float = 0.05       # reward = -reward_scale * cost (Gym reward and DQN targets)
     # Training signal only (per-ticket mode): charge a ticket for the delay its service
     # imposes on tickets already waiting at that team. Not part of the reported cost.
     externality_weight: float = 1.0
@@ -76,7 +77,6 @@ class DQNConfig:
     # "ticket": learn from per-ticket trajectories (decision -> next decision/resolution).
     # "global": learn from the system-wide cost stream with n-step returns.
     credit_assignment: str = "ticket"
-    reward_scale: float = 0.05       # reward = -reward_scale * cost
     total_steps: int = 300_000
     learning_starts: int = 5_000
     buffer_size: int = 200_000
@@ -95,6 +95,8 @@ class DQNConfig:
     grad_clip: float = 10.0
     eval_every_episodes: int = 10
     eval_episodes: int = 3
+    # Model selection: geometric mean of validation cost over these demand levels.
+    val_loads: list[float] = field(default_factory=lambda: [1.0, 1.3, 1.45])
     seed: int = 0
     device: str = "auto"
 

@@ -16,4 +16,4 @@ Required files:
   figures/load_sweep.png
   figures/routing_heatmap.png
 
-Output: report.pdf
+Output: report.pdf (committed as routeRL_report.pdf)

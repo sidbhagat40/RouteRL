@@ -41,12 +41,20 @@ def set_seed(seed: int) -> None:
     torch.manual_seed(seed)
 
 
-def validate(agent: DQNAgent, env_cfg, n_episodes: int) -> dict:
-    env = SupportRoutingEnv(env_cfg)
+def validate(agent: DQNAgent, env_cfg, n_episodes: int, loads: list[float]) -> dict:
+    """Nominal-demand metrics plus ``score``: the geometric mean of the mean validation cost
+    over ``loads``, so model selection rewards checkpoints that also hold up under overload."""
     policy = DQNPolicy(agent)
-    rows = [run_episode(env, policy, VALIDATION_SEEDS_START + i) for i in range(n_episodes)]
-    return {k: float(np.mean([r[k] for r in rows]))
-            for k in ("total_cost", "sla_breach_rate", "misroutes_per_ticket", "mean_resolution_min")}
+    metrics, log_costs = {}, []
+    for load in loads:
+        env = SupportRoutingEnv(replace(env_cfg, load_multiplier=load))
+        rows = [run_episode(env, policy, VALIDATION_SEEDS_START + i) for i in range(n_episodes)]
+        log_costs.append(np.log(np.mean([r["total_cost"] for r in rows])))
+        if load == env_cfg.load_multiplier:
+            metrics = {k: float(np.mean([r[k] for r in rows])) for k in
+                       ("total_cost", "sla_breach_rate", "misroutes_per_ticket", "mean_resolution_min")}
+    metrics["score"] = float(np.exp(np.mean(log_costs)))
+    return metrics
 
 
 def main():
@@ -61,12 +69,14 @@ def main():
     mode = dqn_cfg.credit_assignment
     if mode not in ("ticket", "global"):
         raise ValueError(f"credit_assignment must be 'ticket' or 'global', got {mode!r}")
-    env = SupportRoutingEnv(env_cfg, randomize_load=True, track_tickets=(mode == "ticket"))
+    env = SupportRoutingEnv(env_cfg, randomize_load=True, track_tickets=(mode == "ticket"),
+                            cost_discount=dqn_cfg.gamma)
     agent = DQNAgent(env.obs_dim, env.action_space.n, dqn_cfg)
-    buffer = ReplayBuffer(dqn_cfg.buffer_size, env.obs_dim)
+    buffer = ReplayBuffer(dqn_cfg.buffer_size, env.obs_dim, env.action_space.n)
     nstep = NStepAccumulator(dqn_cfg.n_step, dqn_cfg.gamma)
     terminal_obs = np.zeros(env.obs_dim, dtype=np.float32)
-    scale, gamma = dqn_cfg.reward_scale, dqn_cfg.gamma
+    all_legal = np.ones(env.action_space.n, dtype=bool)
+    scale, gamma = env_cfg.reward_scale, dqn_cfg.gamma
     print(f"obs_dim={env.obs_dim} actions={env.action_space.n} device={agent.device} "
           f"credit_assignment={mode}")
 
@@ -74,7 +84,7 @@ def main():
     log_fh = open(args.log_out, "w", newline="", encoding="utf-8")
     fields = ["episode", "step", "epsilon", "train_cost", "train_return", "train_sla_breach_rate",
               "train_misroutes_per_ticket", "train_load", "loss", "val_cost", "val_sla_breach_rate",
-              "val_misroutes_per_ticket", "val_mean_resolution_min", "elapsed_s"]
+              "val_misroutes_per_ticket", "val_mean_resolution_min", "val_score", "elapsed_s"]
     writer = csv.DictWriter(log_fh, fieldnames=fields)
     writer.writeheader()
 
@@ -89,18 +99,19 @@ def main():
 
     for step in range(1, dqn_cfg.total_steps + 1):
         eps = epsilon_at(step)
-        action = agent.act(obs, eps)
+        action = agent.act(obs, eps, env.action_mask())
         next_obs, reward, terminated, truncated, info = env.step(action)
         done = terminated or truncated
         ep_return += reward
         if mode == "ticket":
-            for t_obs, t_act, cost, t_next, elapsed, t_done in info["ticket_transitions"]:
+            for t_obs, t_act, cost, t_next, t_mask, elapsed, t_done in info["ticket_transitions"]:
                 buffer.add(t_obs, t_act, -scale * cost, terminal_obs if t_next is None else t_next,
-                           0.0 if t_done else gamma ** elapsed)
+                           0.0 if t_done else gamma ** elapsed, all_legal if t_mask is None else t_mask)
         else:
+            next_mask = all_legal if done else env.action_mask()
             for transition in nstep.push(obs, action, -scale * info["cost"], next_obs, done,
                                          info["elapsed"]):
-                buffer.add(*transition)
+                buffer.add(*transition, next_mask)
         obs = next_obs
 
         if step >= dqn_cfg.learning_starts and step % dqn_cfg.train_freq == 0:
@@ -118,17 +129,17 @@ def main():
                 "elapsed_s": round(time.time() - start, 1),
             }
             if (episode + 1) % dqn_cfg.eval_every_episodes == 0 and step >= dqn_cfg.learning_starts:
-                val = validate(agent, env_cfg, dqn_cfg.eval_episodes)
+                val = validate(agent, env_cfg, dqn_cfg.eval_episodes, dqn_cfg.val_loads)
                 row.update({f"val_{k}": v for k, v in val.items()})
                 row["val_cost"] = val["total_cost"]
                 row.pop("val_total_cost", None)
                 tag = ""
-                if val["total_cost"] < best_val:
-                    best_val = val["total_cost"]
+                if val["score"] < best_val:
+                    best_val = val["score"]
                     agent.save(args.model_out, env_cfg, {"step": step, "episode": episode, "val": val})
                     tag = "  * best"
                 print(f"ep {episode:4d} step {step:7d} eps {eps:.3f} train_cost {summary['total_cost']:9.0f} "
-                      f"val_cost {val['total_cost']:9.0f} breach {val['sla_breach_rate']:.3f} "
+                      f"val_cost {val['total_cost']:9.0f} score {val['score']:9.0f} breach {val['sla_breach_rate']:.3f} "
                       f"misroute {val['misroutes_per_ticket']:.3f} ({row['elapsed_s']}s){tag}", flush=True)
             writer.writerow(row)
             log_fh.flush()
@@ -140,7 +151,7 @@ def main():
     final_path = Path(args.model_out).with_name(Path(args.model_out).stem + "_final.pt")
     agent.save(final_path, env_cfg, {"step": dqn_cfg.total_steps, "episode": episode})
     log_fh.close()
-    print(f"done in {time.time() - start:.0f}s; best val cost {best_val:.0f}; "
+    print(f"done in {time.time() - start:.0f}s; best val score {best_val:.0f}; "
           f"best model -> {args.model_out}, final model -> {final_path}")
 
 

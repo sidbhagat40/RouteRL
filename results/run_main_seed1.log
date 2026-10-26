@@ -1,9 +1,21 @@
 obs_dim=39 actions=6 device=cpu credit_assignment=ticket
-ep    9 step   20291 eps 0.836 train_cost    110871 val_cost    196293 breach 0.517 misroute 0.685 (45.2s)  * best
-ep   19 step   40371 eps 0.674 train_cost    141286 val_cost     19328 breach 0.021 misroute 0.252 (184.7s)  * best
-ep   29 step   58857 eps 0.524 train_cost     20210 val_cost     21714 breach 0.042 misroute 0.270 (242.7s)
-ep   39 step   76459 eps 0.382 train_cost     85518 val_cost     16782 breach 0.022 misroute 0.309 (297.8s)  * best
-ep   49 step  112673 eps 0.089 train_cost     89452 val_cost     16512 breach 0.018 misroute 0.299 (427.0s)  * best
-ep   59 step  192800 eps 0.030 train_cost      8065 val_cost     17320 breach 0.020 misroute 0.325 (714.0s)
-ep   69 step  280494 eps 0.030 train_cost    100351 val_cost     16929 breach 0.013 misroute 0.288 (1010.1s)
-done in 1048s; best val cost 16512; best model -> models/seeds/dqn_seed1.pt, final model -> models\seeds\dqn_seed1_final.pt
+ep    9 step   19983 eps 0.838 train_cost    115665 val_cost     18265 score     41775 breach 0.016 misroute 0.405 (49.2s)  * best
+ep   19 step   38330 eps 0.690 train_cost    151043 val_cost     16997 score     40363 breach 0.018 misroute 0.322 (98.8s)  * best
+ep   29 step   53959 eps 0.564 train_cost     20635 val_cost     16777 score     37734 breach 0.021 misroute 0.270 (141.2s)  * best
+ep   39 step   68559 eps 0.446 train_cost     91172 val_cost     15581 score     36400 breach 0.013 misroute 0.224 (178.3s)  * best
+ep   49 step   85735 eps 0.307 train_cost     86758 val_cost     16008 score     36621 breach 0.015 misroute 0.249 (225.1s)
+ep   59 step  100878 eps 0.185 train_cost      8141 val_cost     15769 score     36232 breach 0.012 misroute 0.268 (280.7s)  * best
+ep   69 step  117428 eps 0.051 train_cost     77548 val_cost     16175 score     36860 breach 0.014 misroute 0.256 (325.6s)
+ep   79 step  130142 eps 0.030 train_cost     16929 val_cost     16086 score     36506 breach 0.014 misroute 0.259 (359.7s)
+ep   89 step  145812 eps 0.030 train_cost     12350 val_cost     15746 score     35916 breach 0.013 misroute 0.250 (400.3s)  * best
+ep   99 step  163219 eps 0.030 train_cost     60364 val_cost     15957 score     36257 breach 0.017 misroute 0.244 (459.5s)
+ep  109 step  177044 eps 0.030 train_cost     15191 val_cost     15962 score     36028 breach 0.014 misroute 0.248 (532.9s)
+ep  119 step  191083 eps 0.030 train_cost      9505 val_cost     15581 score     36080 breach 0.013 misroute 0.233 (605.7s)
+ep  129 step  207306 eps 0.030 train_cost     66704 val_cost     15919 score     36046 breach 0.014 misroute 0.226 (689.3s)
+ep  139 step  223378 eps 0.030 train_cost     13091 val_cost     15652 score     36594 breach 0.013 misroute 0.236 (755.6s)
+ep  149 step  236980 eps 0.030 train_cost      9098 val_cost     15946 score     37361 breach 0.017 misroute 0.245 (825.5s)
+ep  159 step  254910 eps 0.030 train_cost     44228 val_cost     15722 score     36505 breach 0.013 misroute 0.244 (879.3s)
+ep  169 step  265828 eps 0.030 train_cost     10180 val_cost     16116 score     39407 breach 0.014 misroute 0.268 (914.1s)
+ep  179 step  281446 eps 0.030 train_cost     79488 val_cost     15683 score     35879 breach 0.014 misroute 0.226 (964.7s)  * best
+ep  189 step  295575 eps 0.030 train_cost     15087 val_cost     16429 score     39849 breach 0.017 misroute 0.263 (1008.5s)
+done in 1024s; best val score 35879; best model -> models/seeds/dqn_seed1.pt, final model -> models/seeds/dqn_seed1_final.pt
