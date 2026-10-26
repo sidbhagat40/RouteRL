@@ -79,6 +79,23 @@ def test_ticket_transitions_decompose_total_cost(policy):
     assert ticket_cost == pytest.approx(summary["total_cost"])
 
 
+def test_ticket_transition_wait_is_discounted_per_minute():
+    gamma = 0.95
+    cfg = EnvConfig(externality_weight=0.0, misroute_penalty=0.0, breach_penalty=[0.0, 0.0, 0.0])
+    env = SupportRoutingEnv(cfg, track_tickets=True, cost_discount=gamma)
+    policy = SkillAwareShortestQueuePolicy()
+    obs, _ = env.reset(seed=4)
+    C, done, checked = env.n_categories, False, 0
+    while not done:
+        obs, _, term, trunc, info = env.step(policy(obs, env))
+        done = term or trunc
+        for t_obs, _, cost, _, elapsed, _ in info["ticket_transitions"]:
+            w = cfg.wait_cost[int(np.argmax(t_obs[C:C + 3]))]
+            assert cost == pytest.approx(w * (1 - gamma ** elapsed) / (1 - gamma))
+            checked += 1
+    assert checked > 0
+
+
 def test_same_seed_same_tickets_for_all_policies():
     env_a, env_b = SupportRoutingEnv(EnvConfig()), SupportRoutingEnv(EnvConfig())
     env_a.reset(seed=5)

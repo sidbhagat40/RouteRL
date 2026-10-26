@@ -38,7 +38,7 @@ env:
   breach_penalty: [50.0, 25.0, 10.0]
   misroute_penalty: 5.0
   hold_penalty: 0.0
-  reward_scale: 0.01
+  reward_scale: 0.05             # reward = -reward_scale * cost (also used for DQN targets)
   # training signal only: charge each ticket for the delay its service imposes on
   # tickets already queued at that team (marginal-cost credit assignment)
   externality_weight: 1.0
@@ -48,7 +48,6 @@ env:
 
 dqn:
   credit_assignment: ticket     # ticket | global (ablation)
-  reward_scale: 0.05
   total_steps: 300000
   learning_starts: 5000
   buffer_size: 200000

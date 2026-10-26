@@ -61,12 +61,13 @@ def main():
     mode = dqn_cfg.credit_assignment
     if mode not in ("ticket", "global"):
         raise ValueError(f"credit_assignment must be 'ticket' or 'global', got {mode!r}")
-    env = SupportRoutingEnv(env_cfg, randomize_load=True, track_tickets=(mode == "ticket"))
+    env = SupportRoutingEnv(env_cfg, randomize_load=True, track_tickets=(mode == "ticket"),
+                            cost_discount=dqn_cfg.gamma)
     agent = DQNAgent(env.obs_dim, env.action_space.n, dqn_cfg)
     buffer = ReplayBuffer(dqn_cfg.buffer_size, env.obs_dim)
     nstep = NStepAccumulator(dqn_cfg.n_step, dqn_cfg.gamma)
     terminal_obs = np.zeros(env.obs_dim, dtype=np.float32)
-    scale, gamma = dqn_cfg.reward_scale, dqn_cfg.gamma
+    scale, gamma = env_cfg.reward_scale, dqn_cfg.gamma
     print(f"obs_dim={env.obs_dim} actions={env.action_space.n} device={agent.device} "
           f"credit_assignment={mode}")
 

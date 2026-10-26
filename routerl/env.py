@@ -111,16 +111,21 @@ class SupportRoutingEnv(gym.Env):
     ``(obs, action, cost, next_obs | None, elapsed_minutes, done)``: each ticket's
     journey from one decision to its next decision (after a hold or a bounce) or to
     its resolution. Every cost term belongs to exactly one ticket, so these costs sum
-    to the episode's total cost.
+    to the episode's total cost. With ``cost_discount=gamma < 1`` each cost term in a
+    transition is discounted by gamma**(minutes since the ticket's decision), matching
+    the gamma**elapsed bootstrap: otherwise a long route-to-resolution segment would be
+    charged undiscounted while the same wait split by holds would be discounted, making
+    holding look cheaper than routing.
     """
 
     metadata = {"render_modes": []}
 
     def __init__(self, config: EnvConfig | None = None, randomize_load: bool = False,
-                 track_tickets: bool = False):
+                 track_tickets: bool = False, cost_discount: float = 1.0):
         super().__init__()
         self.cfg = config or EnvConfig()
         self.track_tickets = track_tickets
+        self.cost_discount = cost_discount
         c = self.cfg
         self.n_categories = len(c.categories)
         self.n_priorities = len(c.priorities)
@@ -222,12 +227,19 @@ class SupportRoutingEnv(gym.Env):
         self.cost_totals[key] += amount
         self._step_cost += amount
 
+    def _accrue(self, tk: Ticket, amount: float) -> None:
+        """Add a cost term to the ticket's current transition, discounted to its decision."""
+        tk.acc_cost += amount * self.cost_discount ** (self.t - tk.last_t)
+
     def _close_ticket_segment(self, tk: Ticket, next_obs, done: bool) -> None:
         """Emit the transition from the ticket's last decision to now."""
         if not self.track_tickets or tk.last_obs is None:
             return
         elapsed = self.t - tk.last_t
-        cost = tk.acc_cost + self._wait_cost[tk.priority] * elapsed
+        g = self.cost_discount
+        # Waiting in minute k after the decision is weighted by g**k.
+        wait_minutes = elapsed if g == 1.0 else (1.0 - g ** elapsed) / (1.0 - g)
+        cost = tk.acc_cost + self._wait_cost[tk.priority] * wait_minutes
         self._transitions.append((tk.last_obs, tk.last_action, cost, next_obs, elapsed, done))
         tk.last_obs = None
         tk.acc_cost = 0.0
@@ -267,7 +279,7 @@ class SupportRoutingEnv(gym.Env):
                     # Occupying one of n agents for `minutes` delays each waiting ticket
                     # by about minutes / n (marginal-cost / Pigouvian credit assignment).
                     waiting_weight = sum(q * w for q, w in zip(team.qcount, self._wait_cost))
-                    tk.acc_cost += ext_weight * minutes / team.n * waiting_weight
+                    self._accrue(tk, ext_weight * minutes / team.n * waiting_weight)
 
     def _tick(self) -> None:
         self._start_service()
@@ -281,7 +293,7 @@ class SupportRoutingEnv(gym.Env):
             if tk.resolved_at < 0 and not tk.breached:
                 tk.breached = True
                 self._charge("breach", self._breach_penalty[tk.priority])
-                tk.acc_cost += self._breach_penalty[tk.priority]
+                self._accrue(tk, self._breach_penalty[tk.priority])
 
         # Service progress, completions and bounces.
         rng = self._rng
@@ -348,7 +360,7 @@ class SupportRoutingEnv(gym.Env):
             if not tk.breached:
                 tk.breached = True
                 self._charge("breach", self._breach_penalty[tk.priority])
-                tk.acc_cost += self._breach_penalty[tk.priority]
+                self._accrue(tk, self._breach_penalty[tk.priority])
             self._close_ticket_segment(tk, None, True)
         self.truncated_unresolved = sum(self.in_system)
         self._done, self._terminated = True, False
@@ -371,14 +383,14 @@ class SupportRoutingEnv(gym.Env):
             tk.holds += 1
             if self.cfg.hold_penalty:
                 self._charge("hold", self.cfg.hold_penalty)
-                tk.acc_cost += self.cfg.hold_penalty
+                self._accrue(tk, self.cfg.hold_penalty)
             self.held.append(tk)
         else:
             team = self.teams[action]
             if not team.can_handle(tk.category):
                 tk.misroutes += 1
                 self._charge("misroute", self.cfg.misroute_penalty)
-                tk.acc_cost += self.cfg.misroute_penalty
+                self._accrue(tk, self.cfg.misroute_penalty)
             tk.team = action
             heapq.heappush(team.queue, (tk.priority, tk.arrival, tk.tid, tk))
             team.qcount[tk.priority] += 1
