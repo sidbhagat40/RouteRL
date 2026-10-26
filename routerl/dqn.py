@@ -45,25 +45,27 @@ class QNetwork(nn.Module):
 
 
 class ReplayBuffer:
-    """Uniform replay of n-step transitions (s, a, R^(n), s', bootstrap discount)."""
+    """Uniform replay of n-step transitions (s, a, R^(n), s', bootstrap discount, legal actions in s')."""
 
-    def __init__(self, capacity: int, obs_dim: int):
+    def __init__(self, capacity: int, obs_dim: int, n_actions: int):
         self.capacity = capacity
         self.obs = np.zeros((capacity, obs_dim), dtype=np.float32)
         self.next_obs = np.zeros((capacity, obs_dim), dtype=np.float32)
         self.actions = np.zeros(capacity, dtype=np.int64)
         self.returns = np.zeros(capacity, dtype=np.float32)
         self.discounts = np.zeros(capacity, dtype=np.float32)
+        self.next_masks = np.ones((capacity, n_actions), dtype=bool)
         self.ptr = 0
         self.size = 0
 
-    def add(self, obs, action, ret, next_obs, discount) -> None:
+    def add(self, obs, action, ret, next_obs, discount, next_mask) -> None:
         i = self.ptr
         self.obs[i] = obs
         self.actions[i] = action
         self.returns[i] = ret
         self.next_obs[i] = next_obs
         self.discounts[i] = discount
+        self.next_masks[i] = next_mask
         self.ptr = (i + 1) % self.capacity
         self.size = min(self.size + 1, self.capacity)
 
@@ -71,7 +73,7 @@ class ReplayBuffer:
         idx = rng.integers(0, self.size, size=batch_size)
         as_t = lambda a: torch.as_tensor(a[idx], device=device)
         return (as_t(self.obs), as_t(self.actions), as_t(self.returns),
-                as_t(self.next_obs), as_t(self.discounts))
+                as_t(self.next_obs), as_t(self.discounts), as_t(self.next_masks))
 
 
 class NStepAccumulator:
@@ -126,23 +128,26 @@ class DQNAgent:
         x = torch.as_tensor(obs, dtype=torch.float32, device=self.device).unsqueeze(0)
         return self.q(x)[0].cpu().numpy()
 
-    def greedy(self, obs: np.ndarray) -> int:
-        return int(np.argmax(self.q_values(obs)))
+    def greedy(self, obs: np.ndarray, mask: np.ndarray) -> int:
+        return int(np.argmax(np.where(mask, self.q_values(obs), -np.inf)))
 
-    def act(self, obs: np.ndarray, epsilon: float) -> int:
+    def act(self, obs: np.ndarray, epsilon: float, mask: np.ndarray) -> int:
         if self.rng.random() < epsilon:
-            return int(self.rng.integers(self.n_actions))
-        return self.greedy(obs)
+            return int(self.rng.choice(np.flatnonzero(mask)))
+        return self.greedy(obs, mask)
 
     def update(self, buffer: ReplayBuffer) -> float:
-        obs, actions, returns, next_obs, discounts = buffer.sample(self.cfg.batch_size, self.rng, self.device)
+        obs, actions, returns, next_obs, discounts, next_masks = buffer.sample(
+            self.cfg.batch_size, self.rng, self.device)
         q = self.q(obs).gather(1, actions.unsqueeze(1)).squeeze(1)
         with torch.no_grad():
+            # Bootstrap only from actions that are legal in s'.
+            illegal = ~next_masks
             if self.cfg.double:
-                next_a = self.q(next_obs).argmax(dim=1, keepdim=True)
+                next_a = self.q(next_obs).masked_fill(illegal, -torch.inf).argmax(dim=1, keepdim=True)
                 next_q = self.target(next_obs).gather(1, next_a).squeeze(1)
             else:
-                next_q = self.target(next_obs).max(dim=1).values
+                next_q = self.target(next_obs).masked_fill(illegal, -torch.inf).max(dim=1).values
             target = returns + discounts * next_q
         loss = F.smooth_l1_loss(q, target)
         self.optimizer.zero_grad(set_to_none=True)
@@ -190,4 +195,4 @@ class DQNPolicy:
         pass
 
     def __call__(self, obs, env) -> int:
-        return self.agent.greedy(obs)
+        return self.agent.greedy(obs, env.action_mask())

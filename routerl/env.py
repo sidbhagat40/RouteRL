@@ -103,12 +103,13 @@ class Team:
 class SupportRoutingEnv(gym.Env):
     """Gymnasium environment: route the ticket at the head of the dispatcher or hold it.
 
-    Actions 0..K-1 send the ticket to team k; action K holds it for one minute.
+    Actions 0..K-1 send the ticket to team k; action K holds it for one minute. A ticket
+    can be held at most ``max_holds`` times; ``action_mask()`` reports the legal actions.
 
     The Gym reward is the (scaled) system-wide cost of the step. With
     ``track_tickets=True`` the env additionally reports per-ticket transitions in
     ``info["ticket_transitions"]`` as tuples
-    ``(obs, action, cost, next_obs | None, elapsed_minutes, done)``: each ticket's
+    ``(obs, action, cost, next_obs | None, next_mask | None, elapsed_minutes, done)``: each ticket's
     journey from one decision to its next decision (after a hold or a bounce) or to
     its resolution. Every cost term belongs to exactly one ticket, so these costs sum
     to the episode's total cost. With ``cost_discount=gamma < 1`` each cost term in a
@@ -236,11 +237,12 @@ class SupportRoutingEnv(gym.Env):
         if not self.track_tickets or tk.last_obs is None:
             return
         elapsed = self.t - tk.last_t
+        next_mask = None if next_obs is None else self.action_mask()
         g = self.cost_discount
         # Waiting in minute k after the decision is weighted by g**k.
         wait_minutes = elapsed if g == 1.0 else (1.0 - g ** elapsed) / (1.0 - g)
         cost = tk.acc_cost + self._wait_cost[tk.priority] * wait_minutes
-        self._transitions.append((tk.last_obs, tk.last_action, cost, next_obs, elapsed, done))
+        self._transitions.append((tk.last_obs, tk.last_action, cost, next_obs, next_mask, elapsed, done))
         tk.last_obs = None
         tk.acc_cost = 0.0
 
@@ -380,6 +382,8 @@ class SupportRoutingEnv(gym.Env):
             tk.last_obs, tk.last_action, tk.last_t, tk.acc_cost = self._current_obs, action, self.t, 0.0
 
         if action == self.hold_action:
+            if tk.holds >= self.cfg.max_holds:
+                raise ValueError(f"ticket already held {tk.holds} times (max_holds); route it")
             tk.holds += 1
             if self.cfg.hold_penalty:
                 self._charge("hold", self.cfg.hold_penalty)
@@ -409,6 +413,14 @@ class SupportRoutingEnv(gym.Env):
             info["episode_summary"] = self.summary()
         return self._current_obs, reward, terminated, truncated, info
 
+    def action_mask(self) -> np.ndarray:
+        """Legal actions for the current ticket: every team, and hold while under max_holds."""
+        mask = np.ones(self.action_space.n, dtype=bool)
+        if self.hold_action is not None:
+            tk = self.current_ticket
+            mask[self.hold_action] = tk is not None and tk.holds < self.cfg.max_holds
+        return mask
+
     # --------------------------------------------------------- observation
     def _observe(self) -> np.ndarray:
         obs = np.zeros(self.obs_dim, dtype=np.float32)
@@ -425,7 +437,7 @@ class SupportRoutingEnv(gym.Env):
         sla = self.cfg.sla_minutes[tk.priority]
         obs[i] = max(-1.0, min(1.0, (tk.deadline - self.t) / sla))
         obs[i + 1] = 1.0 if tk.retagged else 0.0
-        obs[i + 2] = min(tk.holds / 5.0, 1.0)
+        obs[i + 2] = min(tk.holds / max(self.cfg.max_holds, 1), 1.0)
         obs[i + 3] = min(tk.misroutes / 3.0, 1.0)
         i += 4
         for team in self.teams:

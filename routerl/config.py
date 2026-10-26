@@ -58,6 +58,7 @@ class EnvConfig:
 
     # --- ablation switches ----------------------------------------------
     enable_hold: bool = True         # expose the "hold" action
+    max_holds: int = 5               # a ticket may be held at most this many minutes
     observe_confidence: bool = True  # False: agent only sees the classifier's top-1 label
 
     # --- cost / reward ---------------------------------------------------
@@ -94,6 +95,8 @@ class DQNConfig:
     grad_clip: float = 10.0
     eval_every_episodes: int = 10
     eval_episodes: int = 3
+    # Model selection: geometric mean of validation cost over these demand levels.
+    val_loads: list[float] = field(default_factory=lambda: [1.0, 1.3, 1.45])
     seed: int = 0
     device: str = "auto"
 
