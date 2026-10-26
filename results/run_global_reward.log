@@ -1,0 +1,6 @@
+obs_dim=39 actions=6 device=cpu credit_assignment=global
+ep    9 step   22813 eps 0.816 train_cost    106629 val_cost    265554 breach 0.848 misroute 1.527 (48.6s)  * best
+ep   19 step   47865 eps 0.613 train_cost    311711 val_cost    384757 breach 0.840 misroute 1.321 (109.3s)
+ep   29 step   71358 eps 0.423 train_cost     99135 val_cost    373730 breach 0.822 misroute 0.668 (242.1s)
+ep   39 step  125897 eps 0.030 train_cost     69425 val_cost    358046 breach 0.746 misroute 1.482 (528.1s)
+done in 1125s; best val cost 265554; best model -> models/ablations/global_reward.pt, final model -> models\ablations\global_reward_final.pt

@@ -1,0 +1,3 @@
+# Ablation: remove the "hold" action, forcing an immediate routing decision.
+env:
+  enable_hold: false

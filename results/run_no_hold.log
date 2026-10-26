@@ -1,0 +1,32 @@
+obs_dim=39 actions=5 device=cpu credit_assignment=ticket
+ep    9 step   17339 eps 0.860 train_cost     57101 val_cost     30561 breach 0.104 misroute 0.636 (35.2s)  * best
+ep   19 step   33785 eps 0.727 train_cost    183835 val_cost     24629 breach 0.051 misroute 0.595 (70.0s)  * best
+ep   29 step   44210 eps 0.643 train_cost     27376 val_cost     24911 breach 0.070 misroute 0.497 (94.1s)
+ep   39 step   56463 eps 0.544 train_cost     11927 val_cost     20126 breach 0.036 misroute 0.452 (123.9s)  * best
+ep   49 step   67587 eps 0.454 train_cost     23038 val_cost     18653 breach 0.029 misroute 0.424 (151.8s)  * best
+ep   59 step   78499 eps 0.365 train_cost     21085 val_cost     17906 breach 0.028 misroute 0.359 (180.8s)  * best
+ep   69 step   88124 eps 0.288 train_cost     12418 val_cost     18096 breach 0.029 misroute 0.364 (208.7s)
+ep   79 step   96864 eps 0.217 train_cost     10050 val_cost     17307 breach 0.026 misroute 0.339 (235.2s)  * best
+ep   89 step  105582 eps 0.147 train_cost     27024 val_cost     17070 breach 0.021 misroute 0.296 (259.8s)  * best
+ep   99 step  117074 eps 0.054 train_cost      9883 val_cost     17515 breach 0.022 misroute 0.344 (293.0s)
+ep  109 step  125410 eps 0.030 train_cost     28070 val_cost     17608 breach 0.023 misroute 0.316 (320.5s)
+ep  119 step  136351 eps 0.030 train_cost     83621 val_cost     16424 breach 0.020 misroute 0.296 (357.7s)  * best
+ep  129 step  145480 eps 0.030 train_cost     77384 val_cost     17581 breach 0.019 misroute 0.342 (390.8s)
+ep  139 step  153881 eps 0.030 train_cost     22206 val_cost     17064 breach 0.028 misroute 0.323 (421.4s)
+ep  149 step  162874 eps 0.030 train_cost     80342 val_cost     18194 breach 0.033 misroute 0.333 (454.2s)
+ep  159 step  171576 eps 0.030 train_cost     55665 val_cost     16539 breach 0.023 misroute 0.288 (485.7s)
+ep  169 step  180938 eps 0.030 train_cost     26397 val_cost     17401 breach 0.033 misroute 0.315 (521.6s)
+ep  179 step  189291 eps 0.030 train_cost     40166 val_cost     16847 breach 0.025 misroute 0.300 (550.2s)
+ep  189 step  198570 eps 0.030 train_cost      9010 val_cost     16728 breach 0.023 misroute 0.313 (581.8s)
+ep  199 step  208028 eps 0.030 train_cost      8694 val_cost     16596 breach 0.022 misroute 0.312 (613.4s)
+ep  209 step  216453 eps 0.030 train_cost     11526 val_cost     16581 breach 0.023 misroute 0.294 (641.8s)
+ep  219 step  225475 eps 0.030 train_cost     36506 val_cost     18085 breach 0.034 misroute 0.301 (672.3s)
+ep  229 step  235428 eps 0.030 train_cost     12040 val_cost     16617 breach 0.024 misroute 0.272 (708.7s)
+ep  239 step  243929 eps 0.030 train_cost     52666 val_cost     16584 breach 0.022 misroute 0.313 (739.1s)
+ep  249 step  253998 eps 0.030 train_cost     38531 val_cost     17166 breach 0.026 misroute 0.307 (775.9s)
+ep  259 step  263149 eps 0.030 train_cost     10112 val_cost     17799 breach 0.030 misroute 0.284 (809.2s)
+ep  269 step  272959 eps 0.030 train_cost     58121 val_cost     18306 breach 0.034 misroute 0.313 (844.7s)
+ep  279 step  281219 eps 0.030 train_cost      8637 val_cost     16794 breach 0.022 misroute 0.301 (874.8s)
+ep  289 step  289365 eps 0.030 train_cost     10150 val_cost     20247 breach 0.047 misroute 0.355 (905.5s)
+ep  299 step  296709 eps 0.030 train_cost      9379 val_cost     17395 breach 0.028 misroute 0.312 (933.1s)
+done in 945s; best val cost 16424; best model -> models/ablations/no_hold.pt, final model -> models\ablations\no_hold_final.pt

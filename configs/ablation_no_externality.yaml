@@ -1,0 +1,4 @@
+# Ablation: purely "selfish" per-ticket credit assignment, without the marginal-cost
+# term for the delay a ticket's service imposes on tickets queued behind it.
+env:
+  externality_weight: 0.0

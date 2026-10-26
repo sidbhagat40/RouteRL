@@ -1,0 +1,10 @@
+obs_dim=39 actions=6 device=cpu credit_assignment=ticket
+ep    9 step   22320 eps 0.820 train_cost     81654 val_cost    126897 breach 0.344 misroute 0.376 (47.9s)  * best
+ep   19 step   46768 eps 0.622 train_cost    212456 val_cost     38474 breach 0.134 misroute 0.395 (122.5s)  * best
+ep   29 step   61001 eps 0.507 train_cost     26931 val_cost     24718 breach 0.052 misroute 0.329 (162.9s)  * best
+ep   39 step   82685 eps 0.332 train_cost     10285 val_cost     20373 breach 0.040 misroute 0.382 (226.2s)  * best
+ep   49 step  104689 eps 0.154 train_cost     18035 val_cost     17985 breach 0.025 misroute 0.310 (288.4s)  * best
+ep   59 step  161155 eps 0.030 train_cost     14357 val_cost     17491 breach 0.018 misroute 0.303 (481.9s)  * best
+ep   69 step  225345 eps 0.030 train_cost     11974 val_cost     17989 breach 0.023 misroute 0.328 (700.0s)
+ep   79 step  264647 eps 0.030 train_cost      9677 val_cost     17224 breach 0.024 misroute 0.339 (840.0s)  * best
+done in 962s; best val cost 17224; best model -> models/ablations/no_confidence.pt, final model -> models\ablations\no_confidence_final.pt

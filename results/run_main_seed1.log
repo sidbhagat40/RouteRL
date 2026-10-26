@@ -1,0 +1,9 @@
+obs_dim=39 actions=6 device=cpu credit_assignment=ticket
+ep    9 step   20291 eps 0.836 train_cost    110871 val_cost    196293 breach 0.517 misroute 0.685 (45.2s)  * best
+ep   19 step   40371 eps 0.674 train_cost    141286 val_cost     19328 breach 0.021 misroute 0.252 (184.7s)  * best
+ep   29 step   58857 eps 0.524 train_cost     20210 val_cost     21714 breach 0.042 misroute 0.270 (242.7s)
+ep   39 step   76459 eps 0.382 train_cost     85518 val_cost     16782 breach 0.022 misroute 0.309 (297.8s)  * best
+ep   49 step  112673 eps 0.089 train_cost     89452 val_cost     16512 breach 0.018 misroute 0.299 (427.0s)  * best
+ep   59 step  192800 eps 0.030 train_cost      8065 val_cost     17320 breach 0.020 misroute 0.325 (714.0s)
+ep   69 step  280494 eps 0.030 train_cost    100351 val_cost     16929 breach 0.013 misroute 0.288 (1010.1s)
+done in 1048s; best val cost 16512; best model -> models/seeds/dqn_seed1.pt, final model -> models\seeds\dqn_seed1_final.pt

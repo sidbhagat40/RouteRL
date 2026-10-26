@@ -1,0 +1,71 @@
+# RouteRL default experiment. Any key omitted here falls back to routerl/config.py.
+env:
+  categories: [billing, technical, account, logistics]
+  category_mix: [0.30, 0.35, 0.15, 0.20]
+  priorities: [P1, P2, P3]
+  priority_mix: [0.15, 0.35, 0.50]
+  sla_minutes: [30, 60, 120]
+
+  team_names: [Billing, Technical, Account, Logistics, Tier-1 General]
+  team_agents: [3, 4, 2, 2, 4]
+  # mean handling minutes: rows = teams, cols = categories, 0 = cannot resolve (bounces)
+  handle_time:
+    - [6, 0, 0, 0]
+    - [0, 10, 0, 0]
+    - [0, 0, 8, 0]
+    - [0, 0, 0, 6]
+    - [12, 25, 16, 10]
+  triage_minutes: 3
+  work_shape: 2.0
+
+  break_prob: 0.01
+  break_mean_minutes: 15
+
+  shift_minutes: 480
+  drain_minutes: 180
+  base_arrival_rate: 1.0
+  peak_amplitude: 0.35
+  load_multiplier: 1.0
+  load_randomization: [0.7, 1.5]   # training-time domain randomisation of demand
+  surge_prob: 0.5
+  surge_minutes: 45
+  surge_multiplier: 2.0
+
+  classifier_noise: 1.0
+  clarity_range: [0.5, 3.5]
+
+  wait_cost: [3.0, 2.0, 1.0]
+  breach_penalty: [50.0, 25.0, 10.0]
+  misroute_penalty: 5.0
+  hold_penalty: 0.0
+  reward_scale: 0.01
+  # training signal only: charge each ticket for the delay its service imposes on
+  # tickets already queued at that team (marginal-cost credit assignment)
+  externality_weight: 1.0
+
+  enable_hold: true
+  observe_confidence: true
+
+dqn:
+  credit_assignment: ticket     # ticket | global (ablation)
+  reward_scale: 0.05
+  total_steps: 300000
+  learning_starts: 5000
+  buffer_size: 200000
+  batch_size: 256
+  lr: 0.0003
+  gamma: 0.99                   # per simulated minute
+  n_step: 3
+  train_freq: 2
+  tau: 0.005
+  eps_start: 1.0
+  eps_end: 0.03
+  eps_decay_fraction: 0.4
+  hidden: [256, 256]
+  dueling: true
+  double: true
+  grad_clip: 10.0
+  eval_every_episodes: 10
+  eval_episodes: 5
+  seed: 0
+  device: auto

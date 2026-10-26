@@ -1,0 +1,11 @@
+obs_dim=39 actions=6 device=cpu credit_assignment=ticket
+ep    9 step   22189 eps 0.821 train_cost     64176 val_cost    155847 breach 0.452 misroute 0.297 (47.6s)  * best
+ep   19 step   46741 eps 0.622 train_cost    218069 val_cost     22373 breach 0.035 misroute 0.373 (165.2s)  * best
+ep   29 step   59594 eps 0.518 train_cost     20662 val_cost     20004 breach 0.039 misroute 0.364 (203.0s)  * best
+ep   39 step   81360 eps 0.342 train_cost     11302 val_cost     17022 breach 0.015 misroute 0.317 (266.0s)  * best
+ep   49 step  102582 eps 0.171 train_cost     15380 val_cost     21563 breach 0.047 misroute 0.257 (331.4s)
+ep   59 step  153025 eps 0.030 train_cost     13899 val_cost     15982 breach 0.015 misroute 0.278 (512.8s)  * best
+ep   69 step  214106 eps 0.030 train_cost     11189 val_cost     16025 breach 0.020 misroute 0.287 (719.0s)
+ep   79 step  249392 eps 0.030 train_cost      9122 val_cost     15952 breach 0.014 misroute 0.285 (845.5s)  * best
+ep   89 step  286825 eps 0.030 train_cost     23735 val_cost     16457 breach 0.019 misroute 0.301 (973.0s)
+done in 1005s; best val cost 15952; best model -> models/dqn_routerl.pt, final model -> models\dqn_routerl_final.pt

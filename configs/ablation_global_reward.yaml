@@ -1,0 +1,4 @@
+# Ablation: learn from the system-wide cost stream (n-step, semi-MDP discounting)
+# instead of per-ticket credit assignment. Everything else as in default.yaml.
+dqn:
+  credit_assignment: global

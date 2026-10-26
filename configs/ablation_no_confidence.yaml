@@ -1,0 +1,3 @@
+# Ablation: the agent sees only the classifier's top-1 label, not its confidence.
+env:
+  observe_confidence: false
