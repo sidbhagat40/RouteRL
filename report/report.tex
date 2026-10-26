@@ -4,6 +4,7 @@
 \usepackage[hidelinks]{hyperref}
 \usepackage[font=footnotesize,labelfont=bf,skip=3pt]{caption}
 \usepackage{titlesec}
+\usepackage{flushend}
 \titlespacing*{\section}{0pt}{5pt}{2pt}
 \titleformat*{\section}{\normalsize\bfseries}
 \setlength{\textfloatsep}{6pt}
@@ -92,6 +93,34 @@ available agent among teams able to handle the predicted category) -- a strong h
 heuristic. All policies are evaluated on 30 held-out shifts with \emph{identical} ticket streams.
 
 \section{Results}
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.97\textwidth]{policy_comparison}
+\caption{Test metrics per policy (30 shifts, nominal demand, 95\% CI). Cost and resolution time
+are on a log scale.}
+\label{fig:compare}
+\vspace{4pt}
+\includegraphics[width=0.74\textwidth]{routing_heatmap}
+\caption{Share of each priority's tickets resolved by each team: the DQN keeps P1 tickets on the
+fast specialists and sends low-priority overflow to the slow Tier-1 generalist.}
+\label{fig:heat}
+\vspace{4pt}
+\begin{minipage}[b]{0.41\textwidth}
+\centering
+\includegraphics[width=\linewidth]{ablation_curves}
+\caption{Validation cost during training: three seeds and ablations. The global-reward DQN
+never learns; dashed line: Skill-Aware-SQ.}
+\label{fig:curves}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.57\textwidth}
+\centering
+\includegraphics[width=\linewidth]{load_sweep}
+\caption{Cost and SLA-breach rate vs.\ demand (10 shifts per point). The DQN is the cheapest
+policy at every demand level.}
+\label{fig:sweep}
+\end{minipage}
+\end{figure*}
+
 \begin{table}[t]
 \centering\footnotesize\setlength{\tabcolsep}{2.4pt}
 \caption{Test results (30 shifts, $\approx$594 tickets each, mean $\pm$ 95\% CI).}
@@ -110,30 +139,8 @@ Skill-Aware-SQ & 15{,}525$\pm$1068 & 17.0 & 1.3\% & 4.1\% & \textbf{0.18}\\
 \end{tabular}
 \end{table}
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=\linewidth]{ablation_curves}
-\caption{Validation cost during training: three seeds and ablations. The global-reward
-DQN never learns; the dashed line is Skill-Aware-SQ.}
-\label{fig:curves}
-\end{figure}
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=\linewidth]{load_sweep}
-\caption{Cost and SLA-breach rate vs.\ demand (10 shifts per point). The DQN is the cheapest
-policy at every demand level.}
-\label{fig:sweep}
-\end{figure}
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=\linewidth]{routing_heatmap}
-\caption{Share of each priority's tickets resolved by each team.}
-\label{fig:heat}
-\end{figure}
-
-\textbf{Headline} (Table~\ref{tab:main}). The DQN cuts operating cost by 88\% vs.\ Round-Robin,
+\textbf{Headline} (Table~\ref{tab:main}, Fig.~\ref{fig:compare}). The DQN cuts operating cost by 88\% vs.\ Round-Robin,
 90\% vs.\ Shortest-Queue, 46\% vs.\ Category-Rule and 9.3\% vs.\ Skill-Aware-SQ, which it beats
 on 29/30 paired shifts (paired saving $1436\pm349$, $t{=}8.1$). SLA breaches fall
 4$\times$ (1.3\%$\to$0.3\%), P1 breaches 2.7$\times$ (4.1\%$\to$1.5\%), mean resolution time from

@@ -7,7 +7,7 @@ Local:
 
 Overleaf:
   1. New Project -> Upload
-  2. Upload report.tex AND the figures/ folder (three PNG files)
+  2. Upload report.tex AND the figures/ folder (four PNG files)
   3. Compiler: pdfLaTeX, Recompile twice
 
 Required files:
@@ -15,5 +15,6 @@ Required files:
   figures/ablation_curves.png
   figures/load_sweep.png
   figures/routing_heatmap.png
+  figures/policy_comparison.png
 
 Output: report.pdf (committed as routeRL_report.pdf)
