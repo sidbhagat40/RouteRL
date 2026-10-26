@@ -12,7 +12,7 @@
 \graphicspath{{../results/figures/}{figures/}}
 
 \title{\vspace{-1.6em}\textbf{RouteRL: Routing Customer-Support Tickets with Deep Q-Learning}\vspace{-0.6em}}
-\author{\small  \quad Siddharth Bhagat (B23MT1040) \quad Kunal Jangid (B23MT1026)\\
+\author{\small Siddharth Bhagat (B23MT1040) \quad Kunal Jangid (B23MT1026)\\
 \small GitHub: \url{https://github.com/sidbhagat40/RouteRL}\vspace{-1.0em}}
 \date{}
 
@@ -52,7 +52,7 @@ the ticket for one minute.
 
 \textbf{Reward} $r=-\lambda\,\Delta C$, $\lambda{=}0.05$, where the operating cost is
 \begin{equation}
-C=\sum_i \Big(w_{p_i}T_i + B_{p_i}\,\mathbb{1}[T_i>\text{SLA}_{p_i}] + M\,m_i\Big),
+C=\sum_i \Big(w_{p_i}T_i + B_{p_i}\,\mathbf{1}[T_i>\text{SLA}_{p_i}] + M\,m_i\Big),
 \end{equation}
 $T_i$ = time to resolution, $m_i$ = number of misroutes, $w{=}(3,2,1)$/min,
 $B{=}(50,25,10)$, $M{=}5$. Waiting is charged every minute, breaches when the deadline passes,
@@ -106,7 +106,7 @@ Skill-Aware-SQ & 15{,}525$\pm$1068 & 17.0 & 1.3\% & 4.1\% & \textbf{0.18}\\
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\linewidth]{ablation_curves.pdf}
+\includegraphics[width=\linewidth]{ablation_curves}
 \caption{Validation cost during training: three seeds and ablations. The global-reward
 DQN never learns; the dashed line is Skill-Aware-SQ.}
 \label{fig:curves}
@@ -114,14 +114,14 @@ DQN never learns; the dashed line is Skill-Aware-SQ.}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\linewidth]{load_sweep.pdf}
+\includegraphics[width=\linewidth]{load_sweep}
 \caption{Cost and SLA-breach rate vs.\ demand (10 shifts per point).}
 \label{fig:sweep}
 \end{figure}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\linewidth]{routing_heatmap.pdf}
+\includegraphics[width=\linewidth]{routing_heatmap}
 \caption{Share of each priority's tickets resolved by each team.}
 \label{fig:heat}
 \end{figure}

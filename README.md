@@ -1,4 +1,6 @@
-﻿# RouteRL — Reinforcement-Learning Dispatcher for Customer-Support Tickets
+# RouteRL — Reinforcement-Learning Dispatcher for Customer-Support Tickets
+
+> AI Assignment 2 (Real-Life Use Cases of RL) · Team: Siddharth Bhagat (B23MT1040), Kunal Jangid (B23MT1026) · Report: [`report/routeRL_report.pdf`](report/routeRL_report.pdf) (source: [`report/report.tex`](report/report.tex))
 
 Support tickets that land with the wrong team bounce between queues ("ticket ping-pong"),
 wait longer and breach their Service-Level Agreements (SLAs). **RouteRL** casts ticket
@@ -14,7 +16,6 @@ round-robin, shortest-queue and two stronger skill-aware heuristics.
 30 held-out 8-hour shifts (≈594 tickets each), identical ticket streams for every policy,
 mean ± 95 % CI:
 
-
 | Policy         | Episode cost ↓   | Mean resolution (min) | SLA breach rate | P1 breach rate | Misroutes / ticket |
 | -------------- | ---------------- | --------------------- | --------------- | -------------- | ------------------ |
 | Random         | 126,621 ± 5,287  | 76.0                  | 51.6 %          | 21.8 %         | 1.45               |
@@ -23,7 +24,6 @@ mean ± 95 % CI:
 | Category-Rule  | 25,961 ± 2,472   | 34.0                  | 7.4 %           | 1.3 %          | 0.22               |
 | Skill-Aware-SQ | 15,525 ± 1,068   | 17.0                  | 1.3 %           | 4.1 %          | **0.18**           |
 | **DQN (ours)** | **14,334 ± 882** | **15.5**              | **0.3 %**       | 1.4 %          | 0.27               |
-
 
 - **−88 % / −90 %** cost vs. the proposal's Round-Robin / Shortest-Queue baselines, **−45 %**
 vs. classifier-label routing, **−7.7 %** vs. the strongest heuristic (Skill-Aware-SQ), which
@@ -35,15 +35,12 @@ overflow to the slow generalist (P1 → generalist 4 % vs. 18 % for the heuristi
 - Limitation: under extreme overload (1.45× demand) the DQN is 18 % worse than Skill-Aware-SQ
 (see the load sweep).
 
-
 |                                                             |                                                                     |
 | ----------------------------------------------------------- | ------------------------------------------------------------------- |
 | ![policy comparison](results/figures/policy_comparison.png) | ![load sweep](results/figures/load_sweep.png)                       |
 | ![learning curves](results/figures/ablation_curves.png)     | ![who resolves which priority](results/figures/routing_heatmap.png) |
 
-
 **Ablations** (same budget, nominal demand; `results/ablation_summary.csv`):
-
 
 | Variant        | Cost    | Note                                                                                 |
 | -------------- | ------- | ------------------------------------------------------------------------------------ |
@@ -53,13 +50,9 @@ overflow to the slow generalist (P1 → generalist 4 % vs. 18 % for the heuristi
 | No hold action | 14,323  | hold is not needed at nominal demand                                                 |
 | No externality | 14,347  | same at nominal demand; at 1.45× demand fewer misroutes with the term (0.37 vs 0.49) |
 
-
-
-
 ## 1. The MDP
 
 **Simulator** (`routerl/env.py`, Gymnasium API, 1 step = 1 routing decision, clock = minutes)
-
 
 | Element            | Model                                                                                                                                                                    |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -71,7 +64,6 @@ overflow to the slow generalist (P1 → generalist 4 % vs. 18 % for the heuristi
 | Classifier         | softmax(clarity · one-hot(true) + Gaussian noise); top-1 accuracy ≈ 75 %                                                                                                 |
 | Demand             | 8-hour shift, Poisson arrivals with a mid-shift peak (+35 %), 50 % chance of a 45-min incident surge (×2 in one category); demand randomised ×[0.7, 1.5] during training |
 | Agent availability | idle agents go on breaks (1 %/min, mean 15 min)                                                                                                                          |
-
 
 **State** $s \in \mathbb{R}^{39}$: ticket features (classifier probabilities ×4, priority one-hot ×3,
 normalised SLA slack, re-tagged flag, number of holds, number of misroutes), per-team features
@@ -94,24 +86,22 @@ updates, ε-greedy exploration, validation-based checkpointing, plus two design 
 turned out to be essential:
 
 1. **Semi-MDP discounting** — decisions are irregularly spaced in time, so targets use
-  $\gamma^{\Delta t}$ per elapsed minute rather than per decision (otherwise generating extra
+   $\gamma^{\Delta t}$ per elapsed minute rather than per decision (otherwise generating extra
    hold decisions would make future costs look cheaper).
 2. **Per-ticket credit assignment** — every cost term belongs to exactly one ticket, so the
-  total cost decomposes exactly into per-ticket costs. Each transition follows one ticket from a
+   total cost decomposes exactly into per-ticket costs. Each transition follows one ticket from a
    decision to its next decision (after a hold or bounce) or to its resolution, and one shared
    Q-network is trained on all of them. A marginal-cost (Pigouvian) term charges a ticket for
    the delay its service imposes on tickets already queued at the same team (training signal
    only; reported costs never include it). The `global` credit-assignment mode is kept as an
    ablation.
 
-
-
 ## 2. Installation
 
-Python ≥ 3.10 (tested on Python 3.13, Windows 11). A CPU is enough; no GPU is needed.
+Python ≥ 3.10 (tested on Python 3.13 / Windows 11 and Python 3.10 / Ubuntu 22.04). A CPU is enough; no GPU is needed.
 
 ```bash
-git clone <this-repo-url> RouteRL && cd RouteRL
+git clone https://github.com/sidbhagat40/RouteRL.git && cd RouteRL
 python -m venv .venv
 # Windows: .venv\Scripts\activate      Linux/macOS: source .venv/bin/activate
 pip install -r requirements.txt
@@ -137,21 +127,19 @@ python run_experiments.py --parallel 7 --threads 2
 python evaluate_ablations.py --episodes 30
 ```
 
-All hyper-parameters live in `[configs/default.yaml](configs/default.yaml)`; ablation configs
+All hyper-parameters live in [`configs/default.yaml`](configs/default.yaml); ablation configs
 only list the keys they override.
 
 ## 4. Reproducibility
 
 - Every episode is generated from one integer seed (`SeedSequence` → independent streams for
-ticket arrivals and agent breaks). All policies are evaluated on **identical ticket streams**
-(common random numbers), which makes paired comparisons possible.
+  ticket arrivals and agent breaks). All policies are evaluated on **identical ticket streams**
+  (common random numbers), which makes paired comparisons possible.
 - Seed ranges: training `seed·100000 + episode`, validation `1000–1004` (model selection),
-test `10000–10029` (headline table), load sweep `10500–10509`, backlog trace `10900+`.
+  test `10000–10029` (headline table), load sweep `10500–10509`, backlog trace `10900+`.
 - `models/dqn_routerl.pt` is the checkpoint with the best validation cost; it embeds the full
-environment and DQN configuration it was trained with. `models/seeds/` and
-`models/ablations/` hold the other report models; `results/` holds every CSV and figure.
-
-
+  environment and DQN configuration it was trained with. `models/seeds/` and
+  `models/ablations/` hold the other report models; `results/` holds every CSV and figure.
 
 ## 5. Repository layout
 
@@ -173,8 +161,6 @@ results/              CSV results, training logs and figures
 report/               LaTeX source of the 2-page report (compile on Overleaf)
 tests/                pytest suite
 ```
-
-
 
 ## 6. Originality
 
