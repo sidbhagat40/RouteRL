@@ -1,10 +1,20 @@
 obs_dim=39 actions=6 device=cpu credit_assignment=ticket
-ep    9 step   22320 eps 0.820 train_cost     81654 val_cost    126897 breach 0.344 misroute 0.376 (47.9s)  * best
-ep   19 step   46768 eps 0.622 train_cost    212456 val_cost     38474 breach 0.134 misroute 0.395 (122.5s)  * best
-ep   29 step   61001 eps 0.507 train_cost     26931 val_cost     24718 breach 0.052 misroute 0.329 (162.9s)  * best
-ep   39 step   82685 eps 0.332 train_cost     10285 val_cost     20373 breach 0.040 misroute 0.382 (226.2s)  * best
-ep   49 step  104689 eps 0.154 train_cost     18035 val_cost     17985 breach 0.025 misroute 0.310 (288.4s)  * best
-ep   59 step  161155 eps 0.030 train_cost     14357 val_cost     17491 breach 0.018 misroute 0.303 (481.9s)  * best
-ep   69 step  225345 eps 0.030 train_cost     11974 val_cost     17989 breach 0.023 misroute 0.328 (700.0s)
-ep   79 step  264647 eps 0.030 train_cost      9677 val_cost     17224 breach 0.024 misroute 0.339 (840.0s)  * best
-done in 962s; best val cost 17224; best model -> models/ablations/no_confidence.pt, final model -> models\ablations\no_confidence_final.pt
+ep    9 step   21200 eps 0.829 train_cost     58321 val_cost     30741 score     64925 breach 0.088 misroute 0.575 (64.6s)  * best
+ep   19 step   43131 eps 0.651 train_cost    213790 val_cost     31671 score     64956 breach 0.082 misroute 0.769 (163.3s)
+ep   29 step   56469 eps 0.544 train_cost     23574 val_cost     21586 score     49630 breach 0.038 misroute 0.417 (226.9s)  * best
+ep   39 step   73440 eps 0.406 train_cost     11022 val_cost     17828 score     41659 breach 0.028 misroute 0.356 (284.7s)  * best
+ep   49 step   88049 eps 0.288 train_cost     21048 val_cost     18310 score     41268 breach 0.030 misroute 0.298 (322.8s)  * best
+ep   59 step  102545 eps 0.171 train_cost     16473 val_cost     17566 score     39882 breach 0.029 misroute 0.279 (372.5s)  * best
+ep   69 step  115893 eps 0.063 train_cost     11999 val_cost     17090 score     39501 breach 0.025 misroute 0.273 (435.2s)  * best
+ep   79 step  127906 eps 0.030 train_cost      9098 val_cost     17010 score     39654 breach 0.023 misroute 0.275 (492.1s)
+ep   89 step  141426 eps 0.030 train_cost     23176 val_cost     16610 score     40443 breach 0.021 misroute 0.274 (556.6s)
+ep   99 step  162219 eps 0.030 train_cost      9223 val_cost     16551 score     38680 breach 0.023 misroute 0.259 (652.2s)  * best
+ep  109 step  176413 eps 0.030 train_cost     28113 val_cost     16998 score     39127 breach 0.029 misroute 0.235 (692.3s)
+ep  119 step  195613 eps 0.030 train_cost     70234 val_cost     17400 score     38663 breach 0.026 misroute 0.275 (747.7s)  * best
+ep  129 step  212688 eps 0.030 train_cost     66976 val_cost     16878 score     38925 breach 0.031 misroute 0.263 (794.8s)
+ep  139 step  228143 eps 0.030 train_cost     22818 val_cost     17061 score     38836 breach 0.031 misroute 0.256 (839.2s)
+ep  149 step  244368 eps 0.030 train_cost     67827 val_cost     17810 score     39410 breach 0.040 misroute 0.252 (886.0s)
+ep  159 step  258980 eps 0.030 train_cost     54141 val_cost     17200 score     38530 breach 0.023 misroute 0.239 (928.1s)  * best
+ep  169 step  276376 eps 0.030 train_cost     28315 val_cost     17226 score     39499 breach 0.031 misroute 0.265 (976.1s)
+ep  179 step  290995 eps 0.030 train_cost     33486 val_cost     17399 score     40140 breach 0.033 misroute 0.259 (1011.6s)
+done in 1028s; best val score 38530; best model -> models/ablations/no_confidence.pt, final model -> models/ablations/no_confidence_final.pt

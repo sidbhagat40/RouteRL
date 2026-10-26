@@ -1,11 +1,20 @@
 obs_dim=39 actions=6 device=cpu credit_assignment=ticket
-ep    9 step   21475 eps 0.826 train_cost     81086 val_cost     48040 breach 0.182 misroute 0.750 (46.0s)  * best
-ep   19 step   43095 eps 0.652 train_cost    203539 val_cost     28053 breach 0.082 misroute 0.408 (93.8s)  * best
-ep   29 step   56489 eps 0.543 train_cost     24857 val_cost     57127 breach 0.185 misroute 0.774 (126.3s)
-ep   39 step   75132 eps 0.393 train_cost     11168 val_cost     17605 breach 0.023 misroute 0.295 (175.7s)  * best
-ep   49 step   92632 eps 0.251 train_cost     17738 val_cost     17141 breach 0.015 misroute 0.306 (226.6s)  * best
-ep   59 step  116196 eps 0.061 train_cost     14455 val_cost     17130 breach 0.012 misroute 0.332 (293.4s)  * best
-ep   69 step  162900 eps 0.030 train_cost     10804 val_cost     16483 breach 0.020 misroute 0.284 (454.3s)  * best
-ep   79 step  193377 eps 0.030 train_cost      9520 val_cost     18290 breach 0.030 misroute 0.331 (561.7s)
-ep   89 step  224027 eps 0.030 train_cost     23653 val_cost     18410 breach 0.024 misroute 0.318 (662.3s)
-done in 932s; best val cost 16483; best model -> models/ablations/no_externality.pt, final model -> models\ablations\no_externality_final.pt
+ep    9 step   20846 eps 0.831 train_cost     47845 val_cost     24729 score     59880 breach 0.063 misroute 0.453 (49.3s)  * best
+ep   19 step   42235 eps 0.659 train_cost    193446 val_cost     21412 score     52535 breach 0.047 misroute 0.352 (113.7s)  * best
+ep   29 step   56108 eps 0.546 train_cost     27035 val_cost     19693 score     49565 breach 0.024 misroute 0.323 (169.6s)  * best
+ep   39 step   73604 eps 0.405 train_cost     11129 val_cost     17837 score     47775 breach 0.025 misroute 0.291 (232.4s)  * best
+ep   49 step   88508 eps 0.285 train_cost     18934 val_cost     16795 score     41587 breach 0.020 misroute 0.254 (284.4s)  * best
+ep   59 step  104309 eps 0.157 train_cost     16617 val_cost     17937 score     44109 breach 0.030 misroute 0.260 (358.7s)
+ep   69 step  118197 eps 0.045 train_cost     10958 val_cost     17439 score     41495 breach 0.033 misroute 0.267 (416.9s)  * best
+ep   79 step  130737 eps 0.030 train_cost      9077 val_cost     16548 score     41211 breach 0.014 misroute 0.269 (468.4s)  * best
+ep   89 step  144754 eps 0.030 train_cost     23976 val_cost     17827 score     43154 breach 0.030 misroute 0.307 (507.2s)
+ep   99 step  164368 eps 0.030 train_cost      8969 val_cost     17973 score     43311 breach 0.026 misroute 0.301 (555.5s)
+ep  109 step  178252 eps 0.030 train_cost     27602 val_cost     16841 score     40736 breach 0.019 misroute 0.263 (592.6s)  * best
+ep  119 step  196864 eps 0.030 train_cost     74530 val_cost     18519 score     42838 breach 0.024 misroute 0.279 (642.2s)
+ep  129 step  212499 eps 0.030 train_cost     72683 val_cost     18200 score     43127 breach 0.028 misroute 0.298 (694.8s)
+ep  139 step  226816 eps 0.030 train_cost     22966 val_cost     17438 score     41878 breach 0.020 misroute 0.281 (733.0s)
+ep  149 step  241959 eps 0.030 train_cost     78281 val_cost     17584 score     41599 breach 0.031 misroute 0.270 (772.4s)
+ep  159 step  256601 eps 0.030 train_cost     51906 val_cost     17751 score     43925 breach 0.029 misroute 0.307 (811.3s)
+ep  169 step  272607 eps 0.030 train_cost     25975 val_cost     17651 score     43338 breach 0.026 misroute 0.279 (876.5s)
+ep  179 step  286910 eps 0.030 train_cost     38155 val_cost     17638 score     43497 breach 0.030 misroute 0.283 (944.7s)
+done in 1007s; best val score 40736; best model -> models/ablations/no_externality.pt, final model -> models/ablations/no_externality_final.pt
