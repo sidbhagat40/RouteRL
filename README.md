@@ -23,32 +23,34 @@ mean ± 95 % CI:
 | Shortest-Queue | 144,620 ± 8,724  | 129.0                 | 61.6 %          | 30.6 %         | 3.05               |
 | Category-Rule  | 25,961 ± 2,472   | 34.0                  | 7.4 %           | 1.3 %          | 0.22               |
 | Skill-Aware-SQ | 15,525 ± 1,068   | 17.0                  | 1.3 %           | 4.1 %          | **0.18**           |
-| **DQN (ours)** | **14,334 ± 882** | **15.5**              | **0.3 %**       | 1.4 %          | 0.27               |
+| **DQN (ours)** | **14,089 ± 812** | **15.2**              | **0.3 %**       | 1.5 %          | 0.24               |
 
-- **−88 % / −90 %** cost vs. the proposal's Round-Robin / Shortest-Queue baselines, **−45 %**
-vs. classifier-label routing, **−7.7 %** vs. the strongest heuristic (Skill-Aware-SQ), which
-the DQN beats on **28/30** paired shifts (paired saving 1,191 ± 321, t = 7.3).
-- SLA breaches drop **4×** (1.3 % → 0.3 %), P1 breaches **3×** (4.1 % → 1.4 %).
-- Three training seeds: cost 14,522 ± 272 (std) — training is stable.
+- **−88 % / −90 %** cost vs. the proposal's Round-Robin / Shortest-Queue baselines, **−46 %**
+  vs. classifier-label routing, **−9.3 %** vs. the strongest heuristic (Skill-Aware-SQ), which
+  the DQN beats on **29/30** paired shifts (paired saving 1,436 ± 349, t = 8.1).
+- SLA breaches drop **4×** (1.3 % → 0.3 %), P1 breaches **2.7×** (4.1 % → 1.5 %).
+- Three training seeds: cost 14,131 ± 76 (std) — training is stable.
+- Robust to demand: the DQN is the cheapest policy at **every** demand level from 0.7× to 1.45×
+  (−8.5 % … −3.7 % vs. Skill-Aware-SQ); at 1.45× all three seeds beat the heuristic.
 - Learned behaviour: the agent keeps urgent work on fast specialists and pushes low-priority
-overflow to the slow generalist (P1 → generalist 4 % vs. 18 % for the heuristic; P3 → 27 % vs. 20 %).
-- Limitation: under extreme overload (1.45× demand) the DQN is 18 % worse than Skill-Aware-SQ
-(see the load sweep).
+  overflow to the slow generalist (P1 → generalist 6 % vs. 18 % for the heuristic; P3 → 23 % vs. 20 %).
 
 |                                                             |                                                                     |
 | ----------------------------------------------------------- | ------------------------------------------------------------------- |
 | ![policy comparison](results/figures/policy_comparison.png) | ![load sweep](results/figures/load_sweep.png)                       |
 | ![learning curves](results/figures/ablation_curves.png)     | ![who resolves which priority](results/figures/routing_heatmap.png) |
 
-**Ablations** (same budget, nominal demand; `results/ablation_summary.csv`):
+**Ablations** (same budget, 30 test shifts; `results/ablation_summary.csv`,
+`results/ablation_summary_stress.csv`):
 
-| Variant        | Cost    | Note                                                                                 |
-| -------------- | ------- | ------------------------------------------------------------------------------------ |
-| DQN (full)     | 14,334  | per-ticket credit assignment + semi-MDP discounting                                  |
-| Global reward  | 249,071 | learns from the system-wide cost stream instead → never learns (84 % breaches)       |
-| No confidence  | 14,916  | sees only the classifier's top-1 label → +4.1 % cost, more misroutes                 |
-| No hold action | 14,323  | hold is not needed at nominal demand                                                 |
-| No externality | 14,347  | same at nominal demand; at 1.45× demand fewer misroutes with the term (0.37 vs 0.49) |
+| Variant        | Cost (1.0×) | Cost (1.45×) | Note                                                                    |
+| -------------- | ----------- | ------------ | ----------------------------------------------------------------------- |
+| DQN (full)     | 14,089      | 61,377       | per-ticket credit assignment + semi-MDP discounting + hold cap          |
+| Global reward  | 126,158     | 278,315      | learns from the system-wide cost stream → never learns (56 % breaches)  |
+| No confidence  | 14,571      | 64,013       | sees only the classifier's top-1 label → +3.4 % cost                    |
+| No hold action | 13,732      | 58,931       | with the fixes below the hold action is not needed                      |
+| No externality | 14,519      | 67,077       | +3.1 % at nominal, +9.3 % under overload (25 % vs 19 % breaches)        |
+| Skill-Aware-SQ | 15,525      | 64,219       | strongest heuristic, for reference                                      |
 
 ## 1. The MDP
 
@@ -72,22 +74,25 @@ minutes until the next agent frees up) and global features (shift progress, disp
 recent arrival rate).
 
 **Actions** $a \in \lbrace 0,\dots,5 \rbrace$: route to Billing / Technical / Account / Logistics / Tier-1, or *hold*
-(re-decide next minute).
+(re-decide next minute). A ticket may be held at most `max_holds = 5` times; `env.action_mask()`
+reports the legal actions.
 
 **Reward** $r = -\lambda \Delta C$ with the operating cost
 
-$$C = \sum_{i} \Big( w_{p_i} T_i + B_{p_i} \mathbb{1}[T_i > \mathrm{SLA}_{p_i}] + M \cdot m_i \Big)$$
+$$C = \sum_{i} \Big( w_{p_i} T_i + B_{p_i} \mathbf{1}[T_i > \mathrm{SLA}_{p_i}] + M \cdot m_i \Big)$$
 
 where $T_i$ is the ticket's time to resolution, $m_i$ its number of misroutes,
-$w = (3, 2, 1)$ per minute, $B = (50, 25, 10)$ and $M = 5$.
+$w = (3, 2, 1)$ per minute, $B = (50, 25, 10)$, $M = 5$ and $\lambda = 0.05$ (`env.reward_scale`).
 
 **Learning** (`routerl/dqn.py`, `train.py`): Double DQN + dueling head, Huber loss, soft target
-updates, ε-greedy exploration, validation-based checkpointing, plus two design choices that
-turned out to be essential:
+updates, ε-greedy exploration, and checkpoint selection on the geometric-mean validation cost at
+demand 1.0× / 1.3× / 1.45× (`dqn.val_loads`), plus three design choices that turned out to be
+essential:
 
 1. **Semi-MDP discounting** — decisions are irregularly spaced in time, so targets use
-   $\gamma^{\Delta t}$ per elapsed minute rather than per decision (otherwise generating extra
-   hold decisions would make future costs look cheaper).
+   $\gamma^{\Delta t}$ per elapsed minute rather than per decision, and every cost term inside a
+   transition is discounted to the decision time. Otherwise the same wait looks cheaper when it is
+   split up by holds, which made an earlier version hold tickets 25–35 times under overload.
 2. **Per-ticket credit assignment** — every cost term belongs to exactly one ticket, so the
    total cost decomposes exactly into per-ticket costs. Each transition follows one ticket from a
    decision to its next decision (after a hold or bounce) or to its resolution, and one shared
@@ -95,6 +100,8 @@ turned out to be essential:
    the delay its service imposes on tickets already queued at the same team (training signal
    only; reported costs never include it). The `global` credit-assignment mode is kept as an
    ablation.
+3. **Hold cap with action masking** — the illegal hold action is masked when acting and in the
+   Double-DQN target's argmax (the next state's action mask is stored in the replay buffer).
 
 ## 2. Installation
 
